@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Détails utilisateur{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-4">Détails de l'utilisateur</h2>
+
+    <div class="space-y-2">
+        <p><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
+        <p><strong>Email :</strong> {{ user.email }}</p>
+        <p><strong>Rôle :</strong> {{ user.get_role_display }}</p>
+        <p><strong>Antenne :</strong> {{ user.antenne|default:"Non définie" }}</p>
+        <p><strong>Téléphone :</strong> {{ user.telephone|default:"Non défini" }}</p>
+        <p><strong>Compte bloqué :</strong> {% if user.is_blocked %}Oui{% else %}Non{% endif %}</p>
+        <p><strong>Date création :</strong> {{ user.date_creation|date:"d/m/Y H:i" }}</p>
+        <p><strong>Dernière connexion :</strong> 
+            {% if user.date_derniere_connexion %}
+                {{ user.date_derniere_connexion|date:"d/m/Y H:i" }}
+            {% else %}
+                Jamais
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="mt-4 flex space-x-2">
+        <a href="{% url 'accounts:user_update' user.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition">
+            Modifier
+        </a>
+        <a href="{% url 'accounts:user_list' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">
+            Retour à la liste
+        </a>
+    </div>
+</div>
+{% endblock %}

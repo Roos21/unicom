@@ -1,0 +1,14 @@
+<!-- /templates/sales/category_confirm_delete.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 p-6 bg-white shadow rounded">
+    <h2 class="text-xl font-bold mb-4">Confirmer la suppression</h2>
+    <p>Êtes-vous sûr de vouloir supprimer la catégorie <strong>{{ category.name }}</strong> ?</p>
+    <form method="post" class="mt-4 flex space-x-4">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Supprimer</button>
+        <a href="{% url 'sales:category_list' %}" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</a>
+    </form>
+</div>
+{% endblock %}

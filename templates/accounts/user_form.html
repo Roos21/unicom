@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-xl font-bold mb-4">{{ title }}</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="flex justify-between">
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+                Enregistrer
+            </button>
+            <a href="{% url 'accounts:user_list' %}" class="text-indigo-600 hover:underline">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

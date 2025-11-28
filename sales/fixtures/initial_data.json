@@ -1,0 +1,16 @@
+[
+  {"model": "sales.category", "pk": 1, "fields": {"name": "Photocopie", "type": "service"}},
+  {"model": "sales.category", "pk": 2, "fields": {"name": "Impression", "type": "service"}},
+  {"model": "sales.category", "pk": 3, "fields": {"name": "Saisie", "type": "service"}},
+  {"model": "sales.category", "pk": 4, "fields": {"name": "Scan", "type": "service"}},
+  {"model": "sales.category", "pk": 5, "fields": {"name": "Plastification", "type": "service"}},
+  {"model": "sales.category", "pk": 6, "fields": {"name": "Reliure", "type": "service"}},
+  {"model": "sales.category", "pk": 7, "fields": {"name": "Connexion PC", "type": "service"}},
+  {"model": "sales.category", "pk": 8, "fields": {"name": "Impression Photo", "type": "service"}},
+  {"model": "sales.category", "pk": 9, "fields": {"name": "Tickets abonnement", "type": "bien"}},
+  {"model": "sales.category", "pk": 10, "fields": {"name": "Feuille A4", "type": "bien"}},
+  {"model": "sales.category", "pk": 11, "fields": {"name": "Feuille A3", "type": "bien"}},
+  {"model": "sales.category", "pk": 12, "fields": {"name": "Enveloppe", "type": "bien"}},
+  {"model": "sales.category", "pk": 13, "fields": {"name": "Clé USB", "type": "bien"}},
+  {"model": "sales.category", "pk": 14, "fields": {"name": "Stylo", "type": "bien"}}
+]

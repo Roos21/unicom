@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des utilisateurs{% endblock %}
+
+{% block content %}
+<div class="max-w-8xl mx-auto bg-white shadow-md rounded-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Utilisateurs</h2>
+        <a href="{% url 'accounts:user_create' %}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+            Créer un utilisateur
+        </a>
+    </div>
+
+    <table class="min-w-full table-auto border border-gray-200">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-4 py-2 border">Username</th>
+                <th class="px-4 py-2 border">Email</th>
+                <th class="px-4 py-2 border">Rôle</th>
+                <th class="px-4 py-2 border">Antenne</th>
+                <th class="px-4 py-2 border">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr class="text-center {% if user.is_blocked %}bg-red-50{% endif %}">
+                <td class="px-4 py-2 border">{{ user.username }}</td>
+                <td class="px-4 py-2 border">{{ user.email }}</td>
+                <td class="px-4 py-2 border">{{ user.get_role_display }}</td>
+                <td class="px-4 py-2 border">{{ user.antenne }}</td>
+                <td class="px-4 py-2 border space-x-2">
+                    <a href="{% url 'accounts:user_detail' user.pk %}" class="text-blue-600 hover:underline">Voir</a>
+                    <a href="{% url 'accounts:user_update' user.pk %}" class="text-green-600 hover:underline">Modifier</a>
+                    <a href="{% url 'accounts:user_delete' user.pk %}" class="text-red-600 hover:underline"
+                        onclick="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?');">
+                        Supprimer
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="py-4">Aucun utilisateur trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

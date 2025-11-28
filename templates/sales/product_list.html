@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Produits
+{% endblock %}
+
+{% block content %}
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-semibold">Liste des produits</h2>
+    <a href="{% url 'sales:category_list' %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-blue-700">Gestion des catégories</a>
+    <a href="{% url 'sales:product_create' %}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Ajouter un produit</a>
+  </div>
+
+  <table class="min-w-full bg-white rounded shadow overflow-hidden">
+    <thead class="bg-blue-600 text-white">
+      <tr>
+        <th class="px-4 py-2 text-left">Nom</th>
+        <th class="px-4 py-2 text-left">Catégorie</th>
+        <th class="px-4 py-2 text-left">Prix</th>
+        <th class="px-4 py-2 text-left">Actif</th>
+        <th class="px-4 py-2 text-left">Validée</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in page_obj %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2">{{ product.name }}</td>
+          <td class="px-4 py-2">{{ product.category.name }}</td>
+          <td class="px-4 py-2">{{ product.price }} FCFA</td>
+          <td class="px-4 py-2">
+            {% if product.is_active %}
+              ✔
+            {% else %}
+              ✖
+            {% endif %}
+          </td>
+          <td class="px-4 py-2">
+            {% if product.is_validated %}
+              <span class="text-green-600 font-semibold">Oui</span>
+            {% else %}
+              <span class="text-red-600 font-semibold">Non</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 space-x-2">
+            <a href="{% url 'sales:product_update' product.pk %}" class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modifier</a>
+            <a href="{% url 'sales:product_delete' product.pk %}" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Supprimer</a>
+            {% if not product.is_validated and user.est_admin %}
+              <a href="{% url 'sales:product_validate' product.pk %}" class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">Valider</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="px-4 py-2 text-center text-gray-500">Aucun produit trouvé.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="mt-4">
+    <div class="flex justify-between items-center">
+      <span class="text-gray-600">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+      <div class="space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">Première</a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">Précédente</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">Suivante</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">Dernière</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

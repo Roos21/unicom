@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Validation des Dépenses{% endblock %}
+{% block page_title %}Validation Multi-Niveaux{% endblock %}
+
+{% block content %}
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white shadow rounded-lg divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compte</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Workflow</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+      {% for expense in expenses %}
+      <tr>
+        <td class="px-6 py-4">{{ expense.title }}</td>
+        <td class="px-6 py-4">{{ expense.amount|floatformat:2 }} FCFA</td>
+        <td class="px-6 py-4">{{ expense.account.name }}</td>
+        <td class="px-6 py-4">
+          {% if expense.status == "APPROVED" %}
+            <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800">Approuvée</span>
+          {% elif expense.status == "IN_REVIEW" %}
+            <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-blue-100 text-blue-800">En validation</span>
+          {% elif expense.status == "REJECTED" %}
+            <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Rejetée</span>
+          {% else %}
+            <span class="px-2 inline-flex text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">En attente</span>
+          {% endif %}
+        </td>
+        <td class="px-6 py-4">
+          <div class="space-y-1">
+            {% for step in expense.approval_steps.all %}
+              <div class="flex items-center justify-between px-2 py-1 border rounded {{ step.approved|yesno:'bg-green-100,bg-gray-100' }} {{ step.rejected|yesno:'bg-red-100,' }}">
+                <div>
+                  Niv {{ step.level }} - {{ step.approver.username }}
+                  {% if step.comment %}
+                    <span class="text-gray-500 text-xs">({{ step.comment }})</span>
+                  {% endif %}
+                </div>
+                <div class="flex space-x-1">
+                  {% if step.approved %}
+                    <span class="text-green-600 font-semibold text-xs">✓</span>
+                  {% elif step.rejected %}
+                    <span class="text-red-600 font-semibold text-xs">✗</span>
+                  {% elif user.has_permission('validate_depenses') and step.approver == user %}
+                    <form method="POST" action="{% url 'expenses:expense_approve' step.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600">Approuver</button>
+                    </form>
+                    <form method="POST" action="{% url 'expenses:expense_reject' step.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">Rejeter</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-gray-400 text-xs">Aucun workflow défini</div>
+            {% endfor %}
+          </div>
+        </td>
+        <td class="px-6 py-4 space-x-2">
+          {% if user.has_permission('manage_treasury') %}
+            <a href="{% url 'expenses:expense_edit' expense.id %}" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modifier</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="px-6 py-4 text-center text-gray-500">Aucune dépense à valider.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

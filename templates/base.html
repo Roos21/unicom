@@ -1,0 +1,91 @@
+{% load auth_extras %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        Cybercafé ERP
+      {% endblock %}
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_head %}
+
+    {% endblock %}
+  </head>
+
+  <body class="bg-gray-50 flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white flex-shrink-0">
+      <div class="px-6 py-4 text-xl font-semibold">Unicom ERP</div>
+
+      {% if user.is_authenticated %}
+        {% role_permissions user.role as perms %}
+        <nav class="mt-6">
+          {% if 'view_users' in perms %}
+            <a href="{% url 'accounts:user_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Utilisateurs</span></a>
+          {% endif %}
+
+          <a href="{% url 'sales:product_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Produits</span></a>
+
+          {% if 'view_depenses' in perms %}
+            <a href="{% url 'expenses:expense_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Dépenses</span></a>
+          {% endif %}
+
+          {% if 'validate_depenses' in perms %}
+            <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Validation dépenses</span></a>
+          {% endif %}
+
+          {% if 'view_reports' in perms %}
+            <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Rapports</span></a>
+          {% endif %}
+
+          {% if 'manage_antennes' in perms %}
+            <a href="{% url 'sales:sale_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Ventes</span></a>
+            <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Gestion antennes</span></a>
+          {% endif %}
+
+          {% if 'manage_treasury' in perms %}
+            <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Trésorerie</span></a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header / Topbar -->
+      <header class="bg-blue-800 text-white shadow px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-semibold">
+          {% block page_title %}
+            Tableau de bord
+          {% endblock %}
+        </h1>
+
+        <div class="flex items-center space-x-4">
+          {% if user.is_authenticated %}
+            <span class="font-medium">{{ user.username }} ({{ user.role }})</span>
+            <a href="{% url 'accounts:logout' %}" class="px-3 py-1 bg-red-500 hover:bg-red-600 rounded">Déconnexion</a>
+          {% endif %}
+        </div>
+      </header>
+
+      <!-- Main area -->
+      <main class="flex-1 p-6 overflow-auto">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="mb-4 px-4 py-2 rounded {{ message.tags|default:'bg-blue-200' }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+        {% block content %}
+
+        {% endblock %}
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-blue-900 text-white text-center py-4 text-sm">&copy; {{ now.year }} Univers Créatifs — ERP Unicom</footer>
+    </div>
+  </body>
+</html>
