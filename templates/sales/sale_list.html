@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load form_tags %}
 {% block page_title %}
   Liste des Ventes
 {% endblock %}
@@ -10,6 +10,36 @@
     <h2 class="text-xl font-semibold">Liste des ventes</h2>
     <a href="{% url 'sales:sale_create' %}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter une vente</a>
   </div>
+  <form method="get" class="mb-4 flex flex-wrap items-end gap-4">
+    {# Produit field - Largeur Fixe 50px #}
+    <div class="flex-none">
+      <label class="block text-sm font-medium text-gray-700">Produit</label>
+      {{ filter.form.product|add_class:'w-[195px] border border-gray-300 rounded px-2 py-1 h-9' }}
+    </div>
+
+    {# Client field - Largeur Fixe 50px #}
+    <div class="flex-none">
+      <label class="block text-sm font-medium text-gray-700">Client</label>
+      {{ filter.form.customer|add_class:'w-[195px] border border-gray-300 rounded px-2 py-1 h-9' }}
+    </div>
+
+    {# Statut field - Largeur Fixe 50px #}
+    <div class="flex-none">
+      <label class="block text-sm font-medium text-gray-700">Statut</label>
+      {{ filter.form.status|add_class:'w-[195px] border border-gray-300 rounded px-2 py-1 h-9' }}
+    </div>
+
+    {# Date field - Largeur Fixe 50px #}
+    <div class="flex-none">
+      <label class="block text-sm font-medium text-gray-700">Date (du ... au ...)</label>
+      {{ filter.form.created_at|add_class:'w-[195px] border border-gray-300 rounded px-2 py-1 h-9' }}
+    </div>
+
+    <div class="flex space-x-2">
+      <button type="submit" class="px-4 py-2 h-9 bg-blue-500 text-white rounded hover:bg-blue-600">Filtrer</button>
+      <a href="{% url 'sales:sale_list' %}" class="px-4 py-2 h-9 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center">Réinitialiser</a>
+    </div>
+  </form>
 
   <table class="min-w-full bg-white rounded shadow overflow-hidden">
     <thead class="bg-blue-600 text-white">
@@ -19,6 +49,7 @@
         <th class="px-4 py-2 text-left">Client</th>
         <th class="px-4 py-2 text-left">Méthode de paiement</th>
         <th class="px-4 py-2 text-left">Statut</th>
+        <th class="px-4 py-2 text-left">Date</th>
         <th class="px-4 py-2 text-left">Total</th>
         <th class="px-4 py-2">Actions</th>
       </tr>
@@ -39,6 +70,7 @@
               <span class="text-red-600 font-semibold">Rejetée</span>
             {% endif %}
           </td>
+          <td class="px-4 py-2">{{ sale.created_at }}</td>
           <td class="px-4 py-2">{{ sale.total_price }} F CFA</td>
           <td class="px-4 py-2 space-x-2">
             <a href="{% url 'sales:sale_update' sale.pk %}" class="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Modifier</a>

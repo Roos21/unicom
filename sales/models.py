@@ -11,6 +11,7 @@ class Category(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     is_validated = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)  
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -23,6 +24,7 @@ class Product(TimeStampedModel):
     unit = models.CharField(max_length=30, default="unité")  # ex : page, heure, feuille, copie
     is_active = models.BooleanField(default=True)
     is_validated = models.BooleanField(default=False)  # validation par admin
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)  
 
     def __str__(self):
         return self.name
@@ -53,6 +55,7 @@ class Sale(TimeStampedModel):
         choices=SALE_STATUS_CHOICES,
         default=VALIDATED
     )
+    created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)  
 
 
 

@@ -45,11 +45,10 @@ class ExpenseForm(forms.ModelForm):
 class ValidationThresholdForm(forms.ModelForm):
     class Meta:
         model = ValidationThreshold
-        fields = ["min_amount", "max_amount", "approver", "level"]
+        fields = ["min_amount", "max_amount", "level"]
         widgets = {
             "min_amount": forms.NumberInput(attrs={"class": TW_INPUT}),
             "max_amount": forms.NumberInput(attrs={"class": TW_INPUT}),
-            "approver": forms.Select(attrs={"class": TW_SELECT}),
             "level": forms.NumberInput(attrs={"class": TW_INPUT}),
         }
 

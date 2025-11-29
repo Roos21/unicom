@@ -2,7 +2,12 @@
 
 from accounts.models import User
 
-
+# Rôle attendu à chaque niveau
+ROLE_PER_LEVEL = {
+    1: User.Role.GERANT,
+    2: User.Role.DIRECTEUR,
+    3: User.Role.ADMIN,
+}
 class Permissions:
     # Liste des permissions possibles
     VIEW_USERS = "view_users"

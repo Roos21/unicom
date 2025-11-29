@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+
+from sales.filters import SaleFilter
 from .models import Category, Product, Sale
 from .forms import CategoryForm, ProductForm, SaleForm
 from accounts.permissions import Permissions
@@ -198,13 +200,19 @@ def sale_reject(request, pk):
 
 @login_required
 def sale_list(request):
-    # Récupérer toutes les ventes
-    sales = Sale.objects.all()
 
-    # Pagination : définir le nombre de ventes par page
-    paginator = Paginator(sales, 10)  # Afficher 10 ventes par page
-    page_number = request.GET.get('page')  # Récupérer le numéro de page depuis l'URL
-    page_obj = paginator.get_page(page_number)  # Récupérer la page demandée
+    queryset = Sale.objects.all().order_by('-created_at')
 
-    return render(request, 'sales/sale_list.html', {'page_obj': page_obj})
+    sale_filter = SaleFilter(request.GET, queryset=queryset)
+    filtered_qs = sale_filter.qs
+
+    paginator = Paginator(filtered_qs, 10)  # 10 ventes par page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'filter': sale_filter,
+    }
+    return render(request, 'sales/sale_list.html', {'page_obj': page_obj, 'filter': sale_filter,})
 

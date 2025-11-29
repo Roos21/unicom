@@ -1,0 +1,39 @@
+{% load auth_extras %}
+{% load static %}
+
+<div class="px-6 py-4 text-xl font-semibold">Unicom ERP</div>
+
+{% if user.is_authenticated %}
+  {% role_permissions user.role as perms %}
+  <nav class="mt-6">
+    {% if 'view_users' in perms %}
+      <a href="{% url 'accounts:user_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Utilisateurs</span></a>
+    {% endif %}
+
+    <a href="{% url 'sales:product_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Produits</span></a>
+
+    {% if 'view_depenses' in perms %}
+      <a href="{% url 'expenses:expense_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Dépenses</span></a>
+    {% endif %}
+    {% if 'manage_antennes' in perms %}
+      <a href="{% url 'sales:sale_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Ventes</span></a>
+    {% endif %}
+
+{% comment %}     {% if 'validate_depenses' in perms %}
+      <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Validation dépenses</span></a>
+    {% endif %}
+
+    {% if 'view_reports' in perms %}
+      <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Rapports</span></a>
+    {% endif %}
+
+    {% if 'manage_antennes' in perms %}
+      <a href="{% url 'sales:sale_list' %}" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Ventes</span></a>
+      <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Gestion antennes</span></a>
+    {% endif %}
+
+    {% if 'manage_treasury' in perms %}
+      <a href="#" class="block px-6 py-3 hover:bg-blue-700 rounded flex items-center space-x-3"><span>Trésorerie</span></a>
+    {% endif %} {% endcomment %}
+  </nav>
+{% endif %}

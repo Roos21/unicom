@@ -62,6 +62,7 @@ INSTALLED_APPS += [
     'accounts',
     'sales',
     'expense',
+    'django_filters',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
@@ -122,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'fr-fr'
 
-TIME_ZONE = 'Africa/Lagos'  # Ou une autre zone horaire en UTC+1
+TIME_ZONE = 'Africa/Ndjamena'  # Ou une autre zone horaire en UTC+1
 
 USE_I18N = True
 

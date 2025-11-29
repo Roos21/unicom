@@ -79,6 +79,7 @@ class User(AbstractUser, PermissionsMixin, SoftDeleteMixin):
         help_text='Permissions spécifiques de l’utilisateur.'
     )
     # CONNEXION
+
     def enregistrer_connexion(self):
         """Met à jour la dernière connexion"""
         self.date_derniere_connexion = timezone.now()
@@ -93,8 +94,10 @@ class User(AbstractUser, PermissionsMixin, SoftDeleteMixin):
     # REPRÉSENTATION
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
-    
+
     def has_permission(self, permission_name):
         from .permissions import ROLE_PERMISSIONS
         return permission_name in ROLE_PERMISSIONS.get(self.role, set())
+
+
 

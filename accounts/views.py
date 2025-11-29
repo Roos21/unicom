@@ -25,7 +25,7 @@ def login_view(request):
             else:
                 login(request, user)
                 user.enregistrer_connexion()
-                return redirect('accounts:user_list')
+                return redirect('index')
         else:
             messages.error(request, "Nom d'utilisateur ou mot de passe incorrect")
     return render(request, 'accounts/login.html', {'form': form})

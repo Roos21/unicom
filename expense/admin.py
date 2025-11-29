@@ -25,9 +25,9 @@ class ExpenseCategoryAdmin(admin.ModelAdmin):
 # ---------------------------------------------
 @admin.register(ValidationThreshold)
 class ValidationThresholdAdmin(admin.ModelAdmin):
-    list_display = ('level', 'min_amount', 'max_amount', 'approver')
+    list_display = ('level', 'min_amount', 'max_amount', 'role')
     list_filter = ('level',)
-    search_fields = ('approver__username',)
+    search_fields = ('level',)
 
 # ---------------------------------------------
 # 4. Dépense
@@ -69,6 +69,6 @@ class TransactionAdmin(admin.ModelAdmin):
 # ---------------------------------------------
 @admin.register(ApprovalStep)
 class ApprovalStepAdmin(admin.ModelAdmin):
-    list_display = ('expense', 'level', 'approver', 'approved', 'rejected', 'validated_at')
+    list_display = ('expense', 'level', 'approved_by', 'approved', 'rejected', 'approved_at')
     list_filter = ('approved', 'rejected', 'level')
-    search_fields = ('expense__title', 'approver__username')
+    search_fields = ('expense__title', 'approved_by__username')
