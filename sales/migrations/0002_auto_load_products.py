@@ -17,7 +17,7 @@ def create_products(apps, schema_editor):
     ]
 
     for name, price, unit, cat_name in services:
-        category = Category.objects.get(name=cat_name)
+        category, created = Category.objects.get_or_create(name=cat_name)
         Product.objects.create(name=name, price=price, unit=unit, category=category)
 
     # Biens
