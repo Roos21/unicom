@@ -8,6 +8,14 @@
 {% block content %}
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-xl font-semibold">Liste des ventes</h2>
+    <div class="flex justify-between items-center">
+      <h1 class="mr-2 text-md font-semibold">Solde Banque : {{solde_banque.balance}}</h1>
+      <h1 class="mr-2 text-md font-semibold">Solde Caisse : {{solde_caisse.balance}}</h1>
+    </div>
+    <div>
+      <a href="{% url 'sales:rapport_periodique' %}" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-blue-600">Compte global</a>
+      <a href="{% url 'sales:mon_rapport_periodique' %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-blue-600">Mon compte</a>
+    </div>
     <a href="{% url 'sales:sale_create' %}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter une vente</a>
   </div>
   <form method="get" class="mb-4 flex flex-wrap items-end gap-4">

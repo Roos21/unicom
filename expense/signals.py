@@ -102,30 +102,3 @@ def create_transaction_when_expense_approved(sender, instance, **kwargs):
                 expense=expense
             )
 
-# ------------------------------
-# SIGNAL 4 : Créer transaction OUT quand la dépense passe en PAYÉ
-# ------------------------------
-""" @receiver(pre_save, sender=Expense)
-def create_transaction_when_expense_paid(sender, instance, **kwargs):
-    if not instance.pk:
-        return  # Nouvelle dépense, on ignore
-
-    previous = Expense.objects.get(pk=instance.pk)
-
-    if previous.status != "PAID" and instance.status == "PAID":
-        account = instance.account
-
-        # Vérifier solde suffisant
-        if account.balance < instance.amount:
-            raise ValidationError(f"Solde insuffisant dans le compte {account.name}")
-
-        # Créer transaction OUT si elle n'existe pas
-        exists = Transaction.objects.filter(expense=instance, type="OUT").exists()
-        if not exists:
-            Transaction.objects.create(
-                account=account,
-                type="OUT",
-                amount=instance.amount,
-                expense=instance
-            )
- """

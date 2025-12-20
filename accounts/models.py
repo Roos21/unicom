@@ -98,6 +98,38 @@ class User(AbstractUser, PermissionsMixin, SoftDeleteMixin):
     def has_permission(self, permission_name):
         from .permissions import ROLE_PERMISSIONS
         return permission_name in ROLE_PERMISSIONS.get(self.role, set())
+    
+class Ville(models.Model):
+    """Model definition for Ville."""
+    name = models.CharField(max_length = 150)
+    
+
+    class Meta:
+        """Meta definition for Ville."""
+
+        verbose_name = 'Ville'
+        verbose_name_plural = 'Villes'
+
+    def __str__(self):
+        """Unicode representation of Ville."""
+        return self.name
+
+class Antenne(models.Model):
+    """Model definition for Antenne."""
+    nom = models.CharField(max_length = 150, null=True, blank=True)
+    lieux = models.ForeignKey(Ville, on_delete=models.CASCADE, blank=True, null=True)
+    gerant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gerant')
+
+    class Meta:
+        """Meta definition for Antenne."""
+
+        verbose_name = 'Antenne'
+        verbose_name_plural = 'Antennes'
+
+    def __str__(self):
+        """Unicode representation of Antenne."""
+        return f'{self.nom}'
+
 
 
 

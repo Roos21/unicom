@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="max-w-6xl mx-auto mt-8 p-4 sm:p-6 lg:p-8">
+    <form method="GET" action="{% url 'sales:rapport_periodique' %}" class="flex items-center border-2  p-5 space-x-4 mb-8 bg-gray-100">
+      {{ form.as_p }}
+      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Générer le compte</button>
+    </form>
+
+    <h3 class="text-xl font-semibold text-gray-600 mb-6 text-center">Rapport du {{ start_date|date:'d F Y' }} au {{ end_date|date:'d F Y' }}</h3>
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden mb-8">
+      <div class="px-6 py-3 bg-blue-100 whitespace-nowrap text-lg text-blue-800">
+        <h4 class="text-xl font-semibold">Synthèse Financière</h4>
+      </div>
+      <div class="p-4">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Catégorie</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Montant</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr class="bg-green-50">
+              <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-green-700">TOTAL VENTES EN ESPÈCES (Cash)</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-green-700">{{ ventes_cash }}</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-center text-green-700">REVENU</td>
+            </tr>
+            <tr class="bg-green-50">
+              <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-green-700">TOTAL VENTES À CRÉDIT</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-green-700">{{ ventes_credit }}</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-center text-green-700">REVENU</td>
+            </tr>
+            <tr class="bg-green-100 font-extrabold">
+              <td class="px-6 py-3 whitespace-nowrap text-base text-green-800">TOTAL GÉNÉRAL DES VENTES</td>
+              <td class="px-6 py-3 whitespace-nowrap text-base text-right text-green-800">{{ total_ventes }}</td>
+              <td></td>
+            </tr>
+            <tr class="bg-red-50">
+              <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-red-700">TOTAL GÉNÉRAL DES DÉPENSES</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-right font-bold text-red-700">{{ total_depenses_global }}</td>
+              <td class="px-6 py-3 whitespace-nowrap text-sm text-center text-red-700">DÉPENSE</td>
+            </tr>
+            <tr class="bg-blue-100 font-extrabold">
+              <td class="px-6 py-3 whitespace-nowrap text-lg text-blue-800">SOLDE NET DE LA JOURNÉE (Ventes - Dépenses - Crédit)</td>
+              <td class="px-6 py-3 whitespace-nowrap text-lg text-right text-blue-800">{{ solde_net }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3 class="text-2xl font-bold text-gray-700 mt-8 mb-4 border-b-2 pb-2">Détails des Ventes (Revenus)</h3>
+
+    {% for type_vente, data_type in ventes_detaillees_par_categorie.items %}
+      <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-6 border-t-4 border-indigo-600">
+        <div class="bg-indigo-600 text-white p-4 flex justify-between items-center">
+          <h5 class="text-lg font-semibold">Type de Produit: {{ type_vente }}</h5>
+          <span class="text-xl font-bold">Total: {{ data_type.total_par_type }}</span>
+        </div>
+
+        {% for category_name, data_category in data_type.categories.items %}
+          <div class="p-4 border-b last:border-b-0">
+            <div class="bg-gray-100 p-3 rounded-md flex justify-between items-center mb-2">
+              <h6 class="text-base font-medium text-gray-800">Catégorie : {{ category_name }}</h6>
+              <span class="px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-full">Total: {{ data_category.total }}</span>
+            </div>
+
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qté</th>
+                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P.U.</th>
+                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Vente</th>
+                  <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Paiement</th>
+                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-100">
+                {% for detail in data_category.details %}
+                  <tr>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ detail.produit }}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-center">{{ detail.quantite }}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-right">{{ detail.prix_unitaire }}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-right font-semibold text-indigo-700">{{ detail.total_vente }}</td>
+                    <td class="px-4 py-2 whitespace-nowrap text-center">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if detail.methode_paiement == 'Cash' %}
+                          bg-blue-100 text-blue-800
+                        {% else %}
+                          bg-yellow-100 text-yellow-800
+                        {% endif %}">
+                        {{ detail.methode_paiement }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ detail.client }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endfor %}
+      </div>
+    {% empty %}
+      <p class="p-4 bg-blue-100 text-blue-800 rounded-md">Aucune vente validée pour cette journée.</p>
+    {% endfor %}
+
+    <h3 class="text-2xl font-bold text-gray-700 mt-10 mb-4 border-b-2 pb-2">Détails des Dépenses (Sorties)</h3>
+
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-8 border-t-4 border-red-600">
+      <div class="bg-red-600 text-white p-4">
+        <h5 class="text-lg font-semibold">Dépenses Payées Regroupées par Catégorie</h5>
+      </div>
+      <div class="p-4">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-3/4">Section de Dépense</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Montant Total</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            {% for depense in depenses_par_section %}
+              <tr>
+                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{{ depense.category__name }}</td>
+                <td class="px-6 py-3 whitespace-nowrap text-sm text-right font-semibold text-red-700">{{ depense.total_depense }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="2" class="px-6 py-3 text-center text-sm text-gray-500">Aucune dépense payée n'a été trouvée ce jour.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="bg-red-100 font-extrabold">
+              <td class="px-6 py-3 text-base text-red-800">TOTAL DÉPENSES GLOBAL</td>
+              <td class="px-6 py-3 text-base text-right text-red-800">{{ total_depenses_global }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-gray-500 mt-6">Rapport généré le {{ 'now'|date:'d/m/Y H:i' }}</p>
+  </div>
+{% endblock %}

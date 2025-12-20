@@ -1,6 +1,7 @@
+from django.conf import settings
 from django.db import models
 
-from accounts.models import User
+from accounts.models import Antenne, User
 from core.timestamps import TimeStampedModel
 
 class Category(TimeStampedModel):
@@ -47,7 +48,7 @@ class Sale(TimeStampedModel):
     date = models.DateTimeField(auto_now_add=True)  # Date de la vente
     customer = models.CharField(max_length=255, null=True, blank=True)  # Nom ou informations du client
     payment_method = models.CharField(max_length=100, choices=[('Cash', 'Cash'), ('Credit', 'Credit')])  # Mode de paiement
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Utilisateur qui a créé la vente
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)  # Utilisateur qui a créé la vente
 
     # Nouveau champ de statut
     status = models.CharField(
@@ -65,3 +66,41 @@ class Sale(TimeStampedModel):
     def save(self, *args, **kwargs):
         self.total_price = self.product.price * self.quantity
         super().save(*args, **kwargs)
+
+
+class ProductByAntenne(models.Model):
+    product  = models.ForeignKey(Product, on_delete=models.CASCADE)
+    antenne = models.ForeignKey(Antenne, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    is_validated = models.BooleanField(default=False)  # validation par admin
+    
+    def __str__(self):
+        return 
+
+    def __unicode__(self):
+        return 
+
+class Credit(models.Model):
+    PENDING = 'Pending'
+    PAID = 'Paid'
+
+    STATUS = (
+        (PENDING, "Impayé"),
+        (PAID, "Payé"),
+    )
+    nom = models.CharField(max_length = 150)
+    telephone = models.CharField(max_length = 150)
+    date = models.DateTimeField(auto_now=False, auto_now_add=False)
+    sale = models.OneToOneField(Sale, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS,
+        default=PENDING
+    )
+    
+    def __str__(self):
+        return  self.nom
+
+    def __unicode__(self):
+        return 

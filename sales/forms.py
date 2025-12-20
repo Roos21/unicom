@@ -99,3 +99,26 @@ class SaleForm(forms.ModelForm):
         if status not in [Sale.PENDING, Sale.VALIDATED]:  # Autoriser seulement les statuts valides
             raise forms.ValidationError("Statut invalide.")
         return status
+
+
+# sales/forms.py
+
+from django import forms
+
+class ReportingPeriodForm(forms.Form):
+    # Définition des choix pour la période de rapport
+    PERIOD_CHOICES = (
+        ('day', 'Journée actuelle'),
+        ('week', 'Cette semaine (7 jours)'),
+        ('month', 'Ce mois-ci'),
+        ('quarter', 'Ce trimestre'),
+        ('year', 'Cette année'),
+        # Vous pourriez ajouter 'custom' pour des dates spécifiques
+    )
+    
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        label="Période de rapport",
+        # Utilisez une classe Tailwind/Bootstrap pour le style si nécessaire
+        widget=forms.Select(attrs={'class': 'form-select p-2 border rounded-md'})
+    )

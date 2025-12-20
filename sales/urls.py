@@ -25,4 +25,6 @@ urlpatterns = [
     path('ventes/<int:pk>/modifier/', views.sale_update, name='sale_update'),  # Modification d'une vente
     path('ventes/<int:pk>/valider/', views.sale_validate, name='sale_validate'),  # Validation d'une vente
     path('ventes/<int:pk>/rejeter/', views.sale_reject, name='sale_reject'), 
+    path('ventes/compte', views.rapport_periodique, name='rapport_periodique'),
+    path('ventes/mon-compte', views.mon_rapport_periodique, name='mon_rapport_periodique'),
 ]
