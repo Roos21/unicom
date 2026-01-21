@@ -23,10 +23,10 @@ class CategoryForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'price', 'unit', 'category']
+        fields = ['name', 'standard_price', 'unit', 'category']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'price': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            'standard_price': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'unit': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
             'category': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
         }

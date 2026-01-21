@@ -75,3 +75,63 @@ def update_account_on_sale(sender, instance, created, **kwargs):
         pass
 
 
+@receiver(post_save, sender=Sale)
+def update_account_on_sale(sender, instance, created, **kwargs):
+    """
+    Gère la création d'une Transaction liée à la caisse DE L'ANTENNE 
+    ou d'une Créance (Crédit) lorsqu'une nouvelle vente est validée.
+    """
+    if not created:
+        return 
+
+    # 1. Identifier l'antenne du vendeur (créateur de la vente)
+    vendeur = instance.created_by
+    if not vendeur or not hasattr(vendeur, 'antenne'): # Remplacez par le nom de votre champ FK
+        # Optionnel: lever une erreur si le vendeur n'est pas rattaché à une antenne
+        return
+
+    antenne_du_vendeur = vendeur.antenne
+
+    # --- Logique basée sur le mode de paiement ---
+
+    if instance.payment_method == 'Cash':
+        
+        ## A. GESTION DU PAIEMENT CASH PAR ANTENNE
+        
+        # On cherche la CAISSE spécifiquement liée à cette ANTENNE
+        account = AccountMoney.objects.filter(
+            antenne=antenne_du_vendeur, 
+            type="CAISSE"
+        ).first()
+
+        if not account:
+            # Sécurité : On ne peut pas valider une vente cash sans caisse configurée pour l'antenne
+            raise ValidationError(f"Configuration manquante : Aucune caisse trouvée pour l'antenne {antenne_du_vendeur.nom}")
+
+        # Création de la transaction dans la bonne caisse
+        Transaction.objects.create(
+            account=account,
+            type="IN",
+            amount=instance.total_price,
+            sale=instance
+        )
+        
+    elif instance.payment_method == 'Credit':
+
+        ## B. GESTION DU PAIEMENT CRÉDIT (lié à l'antenne)
+        customer_name = instance.customer.split(',')[0] if instance.customer else "Client Inconnu"
+        # Si vous n'avez pas le téléphone dans Sale, utilisez une valeur par défaut.
+        customer_phone = instance.customer.split(',')[1] if instance.customer else "N/A" 
+        
+        # 2. Créer une instance de Créance (Credit)
+        Credit.objects.create(
+            nom=customer_name,
+            telephone=customer_phone,
+            # La date de la créance est la date de la vente
+            date=instance.date or timezone.now(), 
+            sale=instance,
+            status='Pending'
+            # Le statut par défaut est 'Pending'
+            # Note: Votre modèle Credit est incomplet, il manque le montant total dû !
+        )
+        

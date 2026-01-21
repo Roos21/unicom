@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from accounts.models import User
+from accounts.models import Antenne, User
 from sales.models import Sale
 
 
@@ -17,6 +17,7 @@ class AccountMoney(models.Model):
 
     name = models.CharField(max_length=150)
     type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
+    antenne = models.ForeignKey(Antenne, on_delete=models.CASCADE, related_name='accounts', blank=True, null=True)
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True,null=True, blank=True)  
 
@@ -67,6 +68,7 @@ class Expense(models.Model):
     account = models.ForeignKey(AccountMoney, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
+    antenne = models.ForeignKey(Antenne, on_delete=models.CASCADE, null=True, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses_created")
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
     created_at = models.DateTimeField(auto_now_add=True)

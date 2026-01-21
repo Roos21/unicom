@@ -31,11 +31,12 @@ class User(AbstractUser, PermissionsMixin, SoftDeleteMixin):
     )
 
     # INFORMATIONS ANTENNE
-    antenne = models.CharField(
-        max_length=255,
+    antenne = models.ForeignKey(
+        'Antenne', 
+        on_delete=models.PROTECT,
+        null=True, 
         blank=True,
-        null=True,
-        help_text="Nom de l'antenne rattachée"
+        related_name='personnel'
     )
 
     # CONTACT PROFESSIONNEL

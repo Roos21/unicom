@@ -161,7 +161,7 @@ def sale_create(request):
         form = SaleForm(request.POST, user=request.user)
         if form.is_valid():
             sale = form.save(commit=False)
-            sale.status = Sale.VALIDATED  # Définir le statut à "Pending"
+            sale.status = Sale.VALIDATED  
             sale.created_by=request.user
             sale.save()
             messages.success(request, "La vente a été créée ")
@@ -237,8 +237,8 @@ def sale_list(request):
     sale_filter = SaleFilter(request.GET, queryset=queryset)
     filtered_qs = sale_filter.qs
 
-    solde_caisse = AccountMoney.objects.get(type='CAISSE')
-    solde_banque = AccountMoney.objects.get(type='BANQUE')
+    solde_caisse = AccountMoney.objects.get_or_create(type='CAISSE', name='Caisse Principale')
+    solde_banque = AccountMoney.objects.get_or_create(type='BANQUE')
 
     paginator = Paginator(filtered_qs, 10)  # 10 ventes par page
     page_number = request.GET.get('page')
