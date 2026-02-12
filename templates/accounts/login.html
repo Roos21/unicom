@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Connexion{% endblock %}
+{% block page_title %}Connexion{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
-    <h2 class="text-2xl font-bold mb-4 text-center">Connexion</h2>
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
-            Se connecter
-        </button>
-    </form>
+<div class="mx-auto w-full max-w-lg ui-card p-6 lg:p-8">
+  <div class="mb-6 text-center">
+    <img src="{% static 'img/logo.png' %}" alt="Logo Unicom" class="mx-auto mb-4 h-28 w-auto" />
+    <h2 class="text-3xl font-bold text-slate-900">Bienvenue</h2>
+    <p class="mt-1 text-sm text-slate-500">Connectez-vous pour acceder a la plateforme.</p>
+  </div>
+
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="ui-btn ui-btn-primary w-full">Se connecter</button>
+  </form>
 </div>
 {% endblock %}

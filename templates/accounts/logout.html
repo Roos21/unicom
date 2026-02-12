@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Déconnexion{% endblock %}
+{% block title %}Deconnexion{% endblock %}
+{% block page_title %}Session terminee{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-6 text-center">
-    <h2 class="text-2xl font-bold mb-4">Vous êtes déconnecté</h2>
-    <p class="mb-4">Merci d'avoir utilisé le système. À bientôt !</p>
-    <a href="{% url 'auth:login' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded transition">
-        Se reconnecter
-    </a>
+<div class="mx-auto max-w-lg ui-card p-8 text-center">
+  <h2 class="text-2xl font-bold text-slate-900">Vous etes deconnecte</h2>
+  <p class="mt-3 text-slate-600">Merci d'avoir utilise le systeme.</p>
+  <a href="{% url 'accounts:login' %}" class="ui-btn ui-btn-primary mt-6">Se reconnecter</a>
 </div>
 {% endblock %}

@@ -14,6 +14,10 @@ urlpatterns = [
     path("users/<int:pk>/", views.user_detail, name="user_detail"),
     path("users/<int:pk>/update/", views.user_update, name="user_update"),
     path("users/<int:pk>/delete/", views.user_delete, name="user_delete"),
+    path("antennes/", views.antenna_list, name="antenna_list"),
+    path("antennes/create/", views.antenna_create, name="antenna_create"),
+    path("antennes/<int:pk>/update/", views.antenna_update, name="antenna_update"),
+    path("antennes/<int:pk>/delete/", views.antenna_delete, name="antenna_delete"),
     path("blocked/", views.blocked_view, name="blocked"),
 
     path('no-permission/', views.no_permission, name='no_permission'),

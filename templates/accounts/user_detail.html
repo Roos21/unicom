@@ -1,35 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Détails utilisateur{% endblock %}
+{% block title %}Details utilisateur{% endblock %}
+{% block page_title %}Profil utilisateur{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
-    <h2 class="text-2xl font-bold mb-4">Détails de l'utilisateur</h2>
-
-    <div class="space-y-2">
-        <p><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
-        <p><strong>Email :</strong> {{ user.email }}</p>
-        <p><strong>Rôle :</strong> {{ user.get_role_display }}</p>
-        <p><strong>Antenne :</strong> {{ user.antenne|default:"Non définie" }}</p>
-        <p><strong>Téléphone :</strong> {{ user.telephone|default:"Non défini" }}</p>
-        <p><strong>Compte bloqué :</strong> {% if user.is_blocked %}Oui{% else %}Non{% endif %}</p>
-        <p><strong>Date création :</strong> {{ user.date_creation|date:"d/m/Y H:i" }}</p>
-        <p><strong>Dernière connexion :</strong> 
-            {% if user.date_derniere_connexion %}
-                {{ user.date_derniere_connexion|date:"d/m/Y H:i" }}
-            {% else %}
-                Jamais
-            {% endif %}
-        </p>
+<div class="mx-auto max-w-3xl space-y-4">
+  <div class="ui-card p-6">
+    <h2 class="text-xl font-bold text-slate-900">{{ user.username }}</h2>
+    <div class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+      <p><span class="font-semibold text-slate-700">Email:</span> {{ user.email }}</p>
+      <p><span class="font-semibold text-slate-700">Role:</span> {{ user.get_role_display }}</p>
+      <p><span class="font-semibold text-slate-700">Antenne:</span> {{ user.antenne|default:"Non definie" }}</p>
+      <p><span class="font-semibold text-slate-700">Gerant de:</span> {{ user.gerant.first|default:"Aucune antenne" }}</p>
+      <p><span class="font-semibold text-slate-700">Telephone:</span> {{ user.telephone|default:"Non defini" }}</p>
+      <p><span class="font-semibold text-slate-700">Compte bloque:</span> {% if user.is_blocked %}Oui{% else %}Non{% endif %}</p>
+      <p><span class="font-semibold text-slate-700">Date creation:</span> {{ user.date_creation|date:"d/m/Y H:i" }}</p>
+      <p class="md:col-span-2"><span class="font-semibold text-slate-700">Derniere connexion:</span> {% if user.date_derniere_connexion %}{{ user.date_derniere_connexion|date:"d/m/Y H:i" }}{% else %}Jamais{% endif %}</p>
     </div>
+  </div>
 
-    <div class="mt-4 flex space-x-2">
-        <a href="{% url 'accounts:user_update' user.pk %}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition">
-            Modifier
-        </a>
-        <a href="{% url 'accounts:user_list' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition">
-            Retour à la liste
-        </a>
-    </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'accounts:user_update' user.pk %}" class="ui-btn" style="background:#16a34a;color:#fff;">Modifier</a>
+    <a href="{% url 'accounts:user_list' %}" class="ui-btn ui-btn-muted">Retour a la liste</a>
+  </div>
 </div>
 {% endblock %}

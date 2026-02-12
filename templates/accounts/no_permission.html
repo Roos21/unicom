@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Permission refusée{% endblock %}
+{% block title %}Permission refusee{% endblock %}
+{% block page_title %}Acces refuse{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto mt-20 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded">
-    <h2 class="text-xl font-bold mb-2">Accès refusé</h2>
-    <p>Vous n'avez pas la permission pour accéder à cette page.</p>
-    <a href="/" class="text-blue-600 hover:underline">Retour à l'accueil</a>
+<div class="mx-auto max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6">
+  <h2 class="text-xl font-bold text-red-700">Vous n'avez pas la permission requise</h2>
+  <p class="mt-2 text-sm text-red-600">Demandez l'autorisation a un administrateur, puis reessayez.</p>
+  <a href="/" class="ui-btn ui-btn-muted mt-4">Retour a l'accueil</a>
 </div>
 {% endblock %}

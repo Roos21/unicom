@@ -30,6 +30,17 @@ class Product(TimeStampedModel):
     def __str__(self):
         return self.name
 
+    def get_price_for_antenne(self, antenne=None):
+        if antenne:
+            antenna_price = self.productbyantenne_set.filter(
+                antenne=antenne,
+                is_active=True,
+                is_validated=True,
+            ).first()
+            if antenna_price:
+                return antenna_price.price
+        return self.standard_price
+
 
 class Sale(TimeStampedModel):
     PENDING = 'Pending'
@@ -64,7 +75,9 @@ class Sale(TimeStampedModel):
         return f"Vente de {self.product.name} pour {self.quantity} au client {self.customer}"
 
     def save(self, *args, **kwargs):
-        self.total_price = self.product.price * self.quantity
+        # Preserve explicit totals set in views/forms (antenna-specific pricing)
+        if self.total_price is None:
+            self.total_price = self.product.standard_price * self.quantity
         super().save(*args, **kwargs)
 
 

@@ -1,30 +1,32 @@
 {% extends 'base.html' %}
-{% block page_title %}Formulaire catégorie{% endblock %}
+{% block page_title %}Formulaire categorie{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto bg-white p-6 shadow rounded">
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="mb-4">
-            {{ form.name.label_tag }} 
-            {{ form.name }}
-            {% for error in form.name.errors %}
-                <p class="text-red-600 text-sm">{{ error }}</p>
-            {% endfor %}
-        </div>
-        <div class="mb-4">
-            {{ form.type.label_tag }} 
-            {{ form.type }}
-            {% for error in form.type.errors %}
-                <p class="text-red-600 text-sm">{{ error }}</p>
-            {% endfor %}
-        </div>
+<div class="mx-auto max-w-2xl ui-card p-6">
+  <form method="POST" class="space-y-4">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
 
-        <div class="flex justify-end space-x-2">
-            <a href="{% url 'sales:category_list' %}" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</a>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Enregistrer</button>
-        </div>
-    </form>
+    <div>
+      {{ form.name.label_tag }}
+      {{ form.name }}
+      {% for error in form.name.errors %}
+        <p class="text-sm text-red-600">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div>
+      {{ form.type.label_tag }}
+      {{ form.type }}
+      {% for error in form.type.errors %}
+        <p class="text-sm text-red-600">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap justify-end gap-2 pt-2">
+      <a href="{% url 'sales:category_list' %}" class="ui-btn ui-btn-muted">Annuler</a>
+      <button type="submit" class="ui-btn ui-btn-primary">Enregistrer</button>
+    </div>
+  </form>
 </div>
 {% endblock %}

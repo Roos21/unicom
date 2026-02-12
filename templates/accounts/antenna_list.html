@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load permissions_extras %}
+
+{% block title %}Liste des antennes{% endblock %}
+{% block page_title %}Antennes{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-xl font-bold text-slate-900">Gestion des antennes</h2>
+      <p class="text-sm text-slate-500">CRUD des antennes et de leurs gerants.</p>
+    </div>
+    {% if user|has_permission:'manage_users' %}
+      <a href="{% url 'accounts:antenna_create' %}" class="ui-btn ui-btn-primary">Creer une antenne</a>
+    {% endif %}
+  </div>
+
+  <div class="overflow-x-auto ui-card">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Ville</th>
+          <th>Gerant</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for antenna in antennas %}
+          <tr>
+            <td>{{ antenna.nom|default:"-" }}</td>
+            <td>{{ antenna.lieux|default:"-" }}</td>
+            <td>{{ antenna.gerant.username }}</td>
+            <td class="space-x-2">
+              {% if user|has_permission:'manage_users' %}
+                <a href="{% url 'accounts:antenna_update' antenna.pk %}" class="ui-btn text-xs text-white" style="background:#16a34a;">Modifier</a>
+                <a href="{% url 'accounts:antenna_delete' antenna.pk %}" class="ui-btn ui-btn-danger text-xs">Supprimer</a>
+              {% else %}
+                <span class="text-xs text-slate-500">Lecture seule</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-slate-500">Aucune antenne trouvee.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,1 +1,140 @@
 {% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 p-6 text-white">
+    <p class="text-xs uppercase tracking-[0.2em] text-blue-100">Unicom ERP</p>
+    <h2 class="mt-1 text-2xl font-bold">Dashboard du jour</h2>
+    <p class="mt-2 text-sm text-blue-100">Bonjour {{ user.username }}. Synthese du {{ today|date:"d/m/Y" }}.</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="ui-card p-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500">Ventes validees</p>
+      <h3 class="mt-2 text-2xl font-bold text-slate-900">{{ total_sales_amount|floatformat:0 }} FCFA</h3>
+      <p class="mt-1 text-sm text-slate-500">{{ sales_count }} operation(s) aujourd'hui</p>
+    </div>
+    <div class="ui-card p-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500">Depenses approuvees</p>
+      <h3 class="mt-2 text-2xl font-bold text-slate-900">{{ total_expenses_amount|floatformat:0 }} FCFA</h3>
+      <p class="mt-1 text-sm text-slate-500">{{ expenses_count }} operation(s) aujourd'hui</p>
+    </div>
+    <div class="ui-card p-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500">Solde net du jour</p>
+      <h3 class="mt-2 text-2xl font-bold {% if net_day_amount >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
+        {{ net_day_amount|floatformat:0 }} FCFA
+      </h3>
+      <p class="mt-1 text-sm text-slate-500">Ventes - depenses approuvees</p>
+    </div>
+    <div class="ui-card p-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500">A valider</p>
+      <h3 class="mt-2 text-2xl font-bold text-slate-900">{{ pending_sales_count|add:pending_expenses_count }}</h3>
+      <p class="mt-1 text-sm text-slate-500">{{ pending_sales_count }} ventes, {{ pending_expenses_count }} depenses</p>
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="ui-card p-4">
+      <p class="text-xs text-slate-500 uppercase tracking-wider">Cash du jour</p>
+      <p class="mt-1 text-lg font-bold text-slate-900">{{ cash_sales_amount|floatformat:0 }} FCFA</p>
+    </div>
+    <div class="ui-card p-4">
+      <p class="text-xs text-slate-500 uppercase tracking-wider">Credit du jour</p>
+      <p class="mt-1 text-lg font-bold text-slate-900">{{ credit_sales_amount|floatformat:0 }} FCFA</p>
+    </div>
+    <div class="ui-card p-4">
+      <p class="text-xs text-slate-500 uppercase tracking-wider">Depenses payees</p>
+      <p class="mt-1 text-lg font-bold text-slate-900">{{ paid_expenses_amount|floatformat:0 }} FCFA</p>
+    </div>
+    <div class="ui-card p-4">
+      <p class="text-xs text-slate-500 uppercase tracking-wider">Ressources actives</p>
+      <p class="mt-1 text-lg font-bold text-slate-900">{{ active_products_count }} produits | {{ users_count }} utilisateurs</p>
+    </div>
+  </div>
+
+  <div class="grid gap-4 xl:grid-cols-2">
+    <div class="ui-card p-4">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h3 class="text-lg font-bold text-slate-900">Dernieres ventes</h3>
+        <a href="{% url 'sales:sale_list' %}" class="ui-btn ui-btn-muted text-xs">Voir tout</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Montant</th>
+              <th>Statut</th>
+              <th>Heure</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in recent_sales %}
+              <tr>
+                <td>{{ sale.product.name }}</td>
+                <td>{{ sale.total_price|floatformat:0 }} FCFA</td>
+                <td>
+                  {% if sale.status == 'Validated' %}
+                    <span class="ui-badge ui-badge-success">Validee</span>
+                  {% elif sale.status == 'Rejected' %}
+                    <span class="ui-badge ui-badge-danger">Rejetee</span>
+                  {% else %}
+                    <span class="ui-badge ui-badge-warning">En attente</span>
+                  {% endif %}
+                </td>
+                <td>{{ sale.date|date:"H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-slate-500">Aucune vente aujourd'hui.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ui-card p-4">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h3 class="text-lg font-bold text-slate-900">Dernieres depenses</h3>
+        <a href="{% url 'expenses:expense_list' %}" class="ui-btn ui-btn-muted text-xs">Voir tout</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Montant</th>
+              <th>Statut</th>
+              <th>Heure</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for expense in recent_expenses %}
+              <tr>
+                <td>{{ expense.title }}</td>
+                <td>{{ expense.amount|floatformat:0 }} FCFA</td>
+                <td>
+                  {% if expense.status == 'APPROVED' %}
+                    <span class="ui-badge ui-badge-success">Approuvee</span>
+                  {% elif expense.status == 'PAID' %}
+                    <span class="ui-badge ui-badge-info">Payee</span>
+                  {% elif expense.status == 'REJECTED' %}
+                    <span class="ui-badge ui-badge-danger">Rejetee</span>
+                  {% else %}
+                    <span class="ui-badge ui-badge-warning">En attente</span>
+                  {% endif %}
+                </td>
+                <td>{{ expense.created_at|date:"H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-slate-500">Aucune depense aujourd'hui.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

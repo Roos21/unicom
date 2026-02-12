@@ -17,6 +17,9 @@ urlpatterns = [
     path('products/<int:pk>/edit/', views.product_update, name='product_update'),
     path('products/<int:pk>/validate/', views.product_validate, name='product_validate'),
     path('products/<int:pk>/delete/', views.product_delete, name='product_delete'),
+    path('products/pricing/antenna/', views.antenna_pricing_list, name='antenna_pricing_list'),
+    path('products/pricing/antenna/create/', views.antenna_pricing_create, name='antenna_pricing_create'),
+    path('products/pricing/antenna/<int:pk>/edit/', views.antenna_pricing_update, name='antenna_pricing_update'),
 
     #Ventes
 
@@ -25,6 +28,8 @@ urlpatterns = [
     path('ventes/<int:pk>/modifier/', views.sale_update, name='sale_update'),  # Modification d'une vente
     path('ventes/<int:pk>/valider/', views.sale_validate, name='sale_validate'),  # Validation d'une vente
     path('ventes/<int:pk>/rejeter/', views.sale_reject, name='sale_reject'), 
+    path('credits/', views.credit_list, name='credit_list'),
+    path('credits/<int:pk>/paid/', views.credit_mark_paid, name='credit_mark_paid'),
     path('ventes/compte', views.rapport_periodique, name='rapport_periodique'),
     path('ventes/mon-compte', views.mon_rapport_periodique, name='mon_rapport_periodique'),
 ]

@@ -44,6 +44,7 @@ def expense_create(request):
         if form.is_valid():
             expense = form.save(commit=False)
             expense.created_by = request.user
+            expense.antenne = request.user.antenne
             expense.status = "PENDING"
             expense.save()
 
@@ -135,39 +136,28 @@ def approve_expense(request, expense_id):
     """
     expense = get_object_or_404(Expense, id=expense_id)
 
-    # Récupération de la première étape non approuvée
-    step = ApprovalStep.objects.filter(
-        expense=expense, 
-        approved=False
-    ).first()
+    # Validation strictement sequentielle: seule la prochaine etape globale est validable
+    next_step = ApprovalStep.objects.filter(
+        expense=expense,
+        approved=False,
+        rejected=False,
+    ).order_by("level").first()
 
-    if not step:
+    if not next_step:
         messages.error(request, "Vous n'avez pas de validation à effectuer pour cette dépense.")
         return redirect('expenses:pending_expenses')
 
+    if next_step.role != request.user.role:
+        messages.error(request, "Ce niveau de validation ne correspond pas a votre role.")
+        return redirect('expenses:pending_expenses')
+
     # Approuver
-    step.approved = True
-    step.rejected = False
-    step.validated_at = timezone.now()
-    step.save()
+    next_step.approved = True
+    next_step.rejected = False
+    next_step.approved_at = timezone.now()
+    next_step.approved_by = request.user
+    next_step.save()
 
-    # Vérifier si tous les niveaux sont validés
-    total_steps = ApprovalStep.objects.filter(expense=expense).count()
-    approved_steps = ApprovalStep.objects.filter(expense=expense, approved=True).count()
-
-    if approved_steps == total_steps:
-        expense.status = 'APPROVED'
-        # Créer la transaction correspondante
-        Transaction.objects.create(
-            account=expense.account,
-            type='OUT',
-            amount=expense.amount,
-            expense=expense
-        )
-    else:
-        expense.status = 'IN_REVIEW'
-
-    expense.save()
     messages.success(request, f"Dépense '{expense.title}' approuvée avec succès !")
     return redirect('expenses:pending_expenses')
 
@@ -181,25 +171,25 @@ def reject_expense(request, expense_id):
     expense = get_object_or_404(Expense, id=expense_id)
 
     # Récupération du niveau de validation correspondant à l'utilisateur
-    try:
-        step = ApprovalStep.objects.get(expense=expense, approver=request.user)
-    except ApprovalStep.DoesNotExist:
+    next_step = ApprovalStep.objects.filter(
+        expense=expense,
+        approved=False,
+        rejected=False,
+    ).order_by("level").first()
+    if not next_step:
         messages.error(request, "Vous n'avez pas de validation à effectuer pour cette dépense.")
         return redirect('expenses:pending_expenses')
 
-    if step.rejected:
-        messages.info(request, "Vous avez déjà rejeté cette dépense.")
+    if next_step.role != request.user.role:
+        messages.error(request, "Ce niveau de validation ne correspond pas a votre role.")
         return redirect('expenses:pending_expenses')
 
     # Rejeter
-    step.approved = False
-    step.rejected = True
-    step.validated_at = timezone.now()
-    step.save()
-
-    # Mettre à jour le statut global de la dépense
-    expense.status = 'REJECTED'
-    expense.save()
+    next_step.approved = False
+    next_step.rejected = True
+    next_step.approved_at = timezone.now()
+    next_step.approved_by = request.user
+    next_step.save()
 
     messages.success(request, f"Dépense '{expense.title}' rejetée.")
     return redirect('expenses:pending_expenses')

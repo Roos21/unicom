@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Formulaire tarif antenne{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl ui-card p-6">
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% for field in form %}
+      <div>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.errors %}<p class="mt-1 text-sm text-red-600">{{ field.errors|striptags }}</p>{% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="flex justify-end gap-2">
+      <a href="{% url 'sales:antenna_pricing_list' %}" class="ui-btn ui-btn-muted">Annuler</a>
+      <button type="submit" class="ui-btn ui-btn-primary">Enregistrer</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

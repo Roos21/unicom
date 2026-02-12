@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Gestion des credits{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class="text-xl font-bold text-slate-900">Suivi des ventes a credit</h2>
+    <form method="get" class="flex gap-2">
+      <select name="status" class="w-44 rounded-lg border border-slate-300 px-3 py-2">
+        <option value="">Tous</option>
+        <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Impayes</option>
+        <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Payes</option>
+      </select>
+      <button type="submit" class="ui-btn ui-btn-primary text-sm">Filtrer</button>
+    </form>
+  </div>
+
+  <div class="overflow-x-auto ui-card">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Antenne</th>
+          <th>Client</th>
+          <th>Telephone</th>
+          <th>Produit</th>
+          <th>Montant</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in credits %}
+          <tr>
+            <td>{{ c.date|date:'d/m/Y H:i' }}</td>
+            <td>{{ c.sale.created_by.antenne.nom|default:'-' }}</td>
+            <td>{{ c.nom }}</td>
+            <td>{{ c.telephone }}</td>
+            <td>{{ c.sale.product.name }}</td>
+            <td>{{ c.sale.total_price }}</td>
+            <td>
+              {% if c.status == 'Paid' %}
+                <span class="ui-badge ui-badge-success">Paye</span>
+              {% else %}
+                <span class="ui-badge ui-badge-warning">Impaye</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if c.status != 'Paid' %}
+                <a href="{% url 'sales:credit_mark_paid' c.pk %}" class="ui-btn text-xs text-white" style="background:#16a34a;">Marquer paye</a>
+              {% else %}
+                <span class="text-slate-400 text-sm">-</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-slate-500">Aucun credit trouve.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

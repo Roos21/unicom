@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.db.models import Q
 from .models import Expense, Transaction, ApprovalStep, AccountMoney, ValidationThreshold
 
 # ------------------------------
@@ -41,8 +42,9 @@ def create_approval_steps(sender, instance, created, **kwargs):
 
     # Chercher les seuils correspondant
     thresholds = ValidationThreshold.objects.filter(
-        min_amount__lte=instance.amount,
-        max_amount__gte=instance.amount
+        min_amount__lte=instance.amount
+    ).filter(
+        Q(max_amount__isnull=True) | Q(max_amount__gte=instance.amount)
     ).order_by("level")
 
     # Créer les étapes de validation
@@ -101,4 +103,3 @@ def create_transaction_when_expense_approved(sender, instance, **kwargs):
                 amount=expense.amount,
                 expense=expense
             )
-

@@ -1,124 +1,134 @@
-# sales/forms.py
 from django import forms
-from .models import Category, Product, Sale
+
+from accounts.models import Antenne
 from accounts.permissions import Permissions
+from .models import Category, Product, ProductByAntenne, Sale
+
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ['name', 'type']
+        fields = ["name", "type"]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'type': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            "name": forms.TextInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "type": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        # Seuls certains rôles peuvent modifier le type
         if self.user and not self.user.has_permission(Permissions.MANAGE_ANTENNES):
-            self.fields['type'].disabled = True
+            self.fields["type"].disabled = True
 
 
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'standard_price', 'unit', 'category']
+        fields = ["name", "standard_price", "unit", "category", "is_active"]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'standard_price': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'unit': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'category': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            "name": forms.TextInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "standard_price": forms.NumberInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "unit": forms.TextInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "category": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "h-4 w-4"}),
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        
-        # Limiter l'accès selon permissions
-        if self.user:
-            if not self.user.has_permission(Permissions.MANAGE_TREASURY):
-                self.fields['price'].disabled = True
-            if not self.user.has_permission(Permissions.MANAGE_USERS):
-                self.fields['category'].queryset = Category.objects.filter(type='Bien', is_validated=True)
-            else:
-                # Si l'utilisateur a la permission de gérer les produits, on affiche toutes les catégories validées
-                self.fields['category'].queryset = Category.objects.filter(is_validated=True)
+        self.fields["category"].queryset = Category.objects.filter(is_validated=True)
 
+
+class ProductByAntenneForm(forms.ModelForm):
+    class Meta:
+        model = ProductByAntenne
+        fields = ["product", "antenne", "price", "is_active"]
+        widgets = {
+            "product": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "antenne": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "price": forms.NumberInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "h-4 w-4"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = Product.objects.filter(is_active=True, is_validated=True).order_by("name")
+        self.fields["antenne"].queryset = Antenne.objects.all().order_by("nom")
 
 
 class SaleForm(forms.ModelForm):
+    credit_nom = forms.CharField(required=False, label="Nom client credit")
+    credit_telephone = forms.CharField(required=False, label="Telephone client credit")
+
     class Meta:
         model = Sale
-        fields = ['product', 'quantity', 'customer', 'payment_method', 'status']
+        fields = ["product", "quantity", "customer", "payment_method", "status"]
         widgets = {
-            'product': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'quantity': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'customer': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'payment_method': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
-            'status': forms.Select(attrs={'class': 'w-full px-3 py-2 border rounded'}),
+            "product": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "quantity": forms.NumberInput(attrs={"class": "w-full px-3 py-2 border rounded", "min": 1}),
+            "customer": forms.TextInput(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "payment_method": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
+            "status": forms.Select(attrs={"class": "w-full px-3 py-2 border rounded"}),
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.user = user
 
-        # Afficher uniquement les produits validés
-        self.fields['product'].queryset = Product.objects.filter(is_validated=True)
+        self.fields["product"].queryset = Product.objects.filter(is_validated=True, is_active=True).order_by("name")
 
-        # Désactiver les champs selon les permissions de l'utilisateur
-        if user:
-            if not user.has_permission(Permissions.MANAGE_TREASURY):
-                self.fields['quantity'].disabled = True
-            if not user.has_permission(Permissions.MANAGE_USERS):
-                self.fields['status'].disabled = True  # Ne permet pas à l'utilisateur de modifier le statut
-                self.fields['status'].initial = Sale.PENDING  # Définit le statut par défaut à "Pending" pour les utilisateurs non administrateurs
+        if user and not user.has_permission(Permissions.VALIDATE_UPDATE_SALES):
+            self.fields["status"].disabled = True
+            self.fields["status"].initial = Sale.PENDING
+
+        if self.instance and self.instance.pk and self.instance.payment_method == "Credit":
+            credit = getattr(self.instance, "credit", None)
+            if credit:
+                self.fields["credit_nom"].initial = credit.nom
+                self.fields["credit_telephone"].initial = credit.telephone
 
     def clean_quantity(self):
-        """ Validation du champ quantity : doit être un nombre positif """
-        quantity = self.cleaned_data.get('quantity')
-        if quantity <= 0:
-            raise forms.ValidationError("La quantité doit être un nombre positif.")
+        quantity = self.cleaned_data.get("quantity")
+        if quantity is None or quantity <= 0:
+            raise forms.ValidationError("La quantite doit etre positive.")
         return quantity
 
-    def clean_total_price(self):
-        """ Calcul automatique du prix total """
-        product = self.cleaned_data.get('product')
-        quantity = self.cleaned_data.get('quantity')
+    def clean(self):
+        cleaned = super().clean()
+        payment_method = cleaned.get("payment_method")
 
-        # Vérification que le produit et la quantité sont valides
-        if product and quantity:
-            total_price = product.price * quantity
-            return total_price
-        return 0  # Si aucun produit ou quantité n'est sélectionné, on retourne 0
+        if payment_method == "Credit":
+            credit_nom = cleaned.get("credit_nom") or cleaned.get("customer")
+            if not credit_nom:
+                self.add_error("credit_nom", "Le nom du client credit est requis.")
 
-    def clean_status(self):
-        """ Validation du champ status : ne peut être modifié par l'utilisateur non admin """
-        status = self.cleaned_data.get('status')
-        # Si l'utilisateur n'est pas admin, ne permet pas de changer le statut
-        if status not in [Sale.PENDING, Sale.VALIDATED]:  # Autoriser seulement les statuts valides
-            raise forms.ValidationError("Statut invalide.")
-        return status
+        return cleaned
 
-
-# sales/forms.py
-
-from django import forms
 
 class ReportingPeriodForm(forms.Form):
-    # Définition des choix pour la période de rapport
     PERIOD_CHOICES = (
-        ('day', 'Journée actuelle'),
-        ('week', 'Cette semaine (7 jours)'),
-        ('month', 'Ce mois-ci'),
-        ('quarter', 'Ce trimestre'),
-        ('year', 'Cette année'),
-        # Vous pourriez ajouter 'custom' pour des dates spécifiques
+        ("day", "Jour"),
+        ("week", "7 jours"),
+        ("month", "Mois"),
+        ("quarter", "Trimestre"),
+        ("year", "Annee"),
     )
-    
+
     period = forms.ChoiceField(
         choices=PERIOD_CHOICES,
-        label="Période de rapport",
-        # Utilisez une classe Tailwind/Bootstrap pour le style si nécessaire
-        widget=forms.Select(attrs={'class': 'form-select p-2 border rounded-md'})
+        label="Periode",
+        widget=forms.Select(attrs={"class": "form-select p-2 border rounded-md"}),
     )
+    antenne = forms.ModelChoiceField(
+        queryset=Antenne.objects.none(),
+        required=False,
+        empty_label="Toutes les antennes",
+        label="Antenne",
+        widget=forms.Select(attrs={"class": "form-select p-2 border rounded-md"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        antennes_qs = kwargs.pop("antennes_qs", Antenne.objects.all())
+        super().__init__(*args, **kwargs)
+        self.fields["antenne"].queryset = antennes_qs

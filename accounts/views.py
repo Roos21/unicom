@@ -2,9 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import UserLoginForm, UserCreateForm, UserUpdateForm
-from .models import User
-from .decorators import role_required
+from .forms import AntenneForm, UserLoginForm, UserCreateForm, UserUpdateForm
+from .models import Antenne, User
+from .decorators import permission_required, role_required
 from .permissions import Permissions
 
 # --- LOGIN / LOGOUT ---
@@ -76,6 +76,53 @@ def user_delete(request, pk):
     user.delete(user=request.user)  # soft delete
     messages.success(request, "Utilisateur supprimé")
     return redirect('accounts:user_list')
+
+
+@login_required
+@permission_required(Permissions.VIEW_USERS)
+def antenna_list(request):
+    antennas = Antenne.objects.select_related("lieux", "gerant").order_by("nom")
+    return render(request, "accounts/antenna_list.html", {"antennas": antennas})
+
+
+@login_required
+@permission_required(Permissions.MANAGE_USERS)
+def antenna_create(request):
+    form = AntenneForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        antenna = form.save()
+        if not antenna.gerant.antenne_id:
+            antenna.gerant.antenne = antenna
+            antenna.gerant.save(update_fields=["antenne"])
+        messages.success(request, "Antenne créée avec succès.")
+        return redirect("accounts:antenna_list")
+    return render(request, "accounts/antenna_form.html", {"form": form, "title": "Créer une antenne"})
+
+
+@login_required
+@permission_required(Permissions.MANAGE_USERS)
+def antenna_update(request, pk):
+    antenna = get_object_or_404(Antenne, pk=pk)
+    form = AntenneForm(request.POST or None, instance=antenna)
+    if request.method == "POST" and form.is_valid():
+        antenna = form.save()
+        if not antenna.gerant.antenne_id:
+            antenna.gerant.antenne = antenna
+            antenna.gerant.save(update_fields=["antenne"])
+        messages.success(request, "Antenne mise à jour.")
+        return redirect("accounts:antenna_list")
+    return render(request, "accounts/antenna_form.html", {"form": form, "title": "Modifier une antenne"})
+
+
+@login_required
+@permission_required(Permissions.MANAGE_USERS)
+def antenna_delete(request, pk):
+    antenna = get_object_or_404(Antenne, pk=pk)
+    if request.method == "POST":
+        antenna.delete()
+        messages.success(request, "Antenne supprimée.")
+        return redirect("accounts:antenna_list")
+    return render(request, "accounts/antenna_confirm_delete.html", {"antenna": antenna})
 
 @login_required
 @role_required('admin')

@@ -1,137 +1,101 @@
-from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 
-from expense.models import AccountMoney, Expense, Transaction
+from expense.models import AccountMoney, Transaction
 from .models import Credit, Sale
 
 
-# -----------------------------
-# SIGNAL POUR LES VENTES
-# -----------------------------
-@receiver(post_save, sender=Sale)
-def update_account_on_sale(sender, instance, created, **kwargs):
-    """
-    Gère la création d'une Transaction (Cash) ou d'une Créance (Crédit) 
-    lorsqu'une nouvelle vente est validée.
-    """
-    
-    # 1. On traite uniquement les nouvelles ventes
-    # Note: Dans un système réel, il est souvent préférable de vérifier 
-    # le statut (instance.status == Sale.VALIDATED) également.
-    if not created:
-        return 
+def _get_or_create_caisse_for_sale(sale):
+    antenne = sale.created_by.antenne if sale.created_by else None
+    defaults = {
+        "name": f"Caisse {antenne.nom}" if antenne else "Caisse Principale",
+        "balance": 0,
+    }
+    account, _ = AccountMoney.objects.get_or_create(
+        type="CAISSE",
+        antenne=antenne,
+        defaults=defaults,
+    )
+    return account
 
-    # --- Logique conditionnelle basée sur le mode de paiement ---
 
-    if instance.payment_method == 'Cash':
-        
-        ## A. GESTION DU PAIEMENT CASH
-        
-        # 1. Choisir le compte à créditer (la caisse)
-        try:
-            # Idéalement, utilisez un ID ou une configuration plus robuste que le type en dur
-            account = AccountMoney.objects.get(type="CAISSE")
-        except AccountMoney.DoesNotExist:
-            # Gérer l'exception si le compte CAISSE n'existe pas
-            print("Erreur: Aucun compte de type CAISSE trouvé.")
-            return # Ou raise ValidationError("...")
-
-        # 2. Créer une transaction IN (Entrée) pour le mouvement de caisse
-        Transaction.objects.create(
-            account=account,
-            type="IN",
-            amount=instance.total_price,
-            sale=instance
-        )
-        
-    elif instance.payment_method == 'Credit':
-        
-        ## B. GESTION DU PAIEMENT CRÉDIT (Créance Client)
-
-        # 1. Vérification des informations client (à adapter selon vos besoins)
-        customer_name = instance.customer.split(',')[0] if instance.customer else "Client Inconnu"
-        # Il vous manque le champ téléphone dans votre modèle Sale. 
-        # Si vous n'avez pas le téléphone dans Sale, utilisez une valeur par défaut.
-        customer_phone = instance.customer.split(',')[1] if instance.customer else "N/A" 
-        
-        # 2. Créer une instance de Créance (Credit)
-        Credit.objects.create(
-            nom=customer_name,
-            telephone=customer_phone,
-            # La date de la créance est la date de la vente
-            date=instance.date, 
-            sale=instance
-            # Le statut par défaut est 'Pending'
-            # Note: Votre modèle Credit est incomplet, il manque le montant total dû !
-        )
-        
-        # NOTE IMPORTANTE: 
-        # Le solde du compte (AccountMoney) n'est PAS mis à jour ici car l'argent n'est pas reçu.
-        
-    else:
-        # Gérer les autres modes de paiement si nécessaire (par exemple, "BANQUE")
-        pass
+@receiver(pre_save, sender=Sale)
+def track_previous_sale_status(sender, instance, **kwargs):
+    if not instance.pk:
+        instance._previous_status = None
+        return
+    old = Sale.objects.filter(pk=instance.pk).only("status").first()
+    instance._previous_status = old.status if old else None
 
 
 @receiver(post_save, sender=Sale)
-def update_account_on_sale(sender, instance, created, **kwargs):
-    """
-    Gère la création d'une Transaction liée à la caisse DE L'ANTENNE 
-    ou d'une Créance (Crédit) lorsqu'une nouvelle vente est validée.
-    """
-    if not created:
-        return 
-
-    # 1. Identifier l'antenne du vendeur (créateur de la vente)
-    vendeur = instance.created_by
-    if not vendeur or not hasattr(vendeur, 'antenne'): # Remplacez par le nom de votre champ FK
-        # Optionnel: lever une erreur si le vendeur n'est pas rattaché à une antenne
+def automate_sale_cash_and_credit(sender, instance, created, **kwargs):
+    # N'automatiser que les ventes validees
+    if instance.status != Sale.VALIDATED:
         return
 
-    antenne_du_vendeur = vendeur.antenne
+    if instance.payment_method == "Cash":
+        if Transaction.objects.filter(sale=instance, type="IN").exists():
+            return
 
-    # --- Logique basée sur le mode de paiement ---
-
-    if instance.payment_method == 'Cash':
-        
-        ## A. GESTION DU PAIEMENT CASH PAR ANTENNE
-        
-        # On cherche la CAISSE spécifiquement liée à cette ANTENNE
-        account = AccountMoney.objects.filter(
-            antenne=antenne_du_vendeur, 
-            type="CAISSE"
-        ).first()
-
-        if not account:
-            # Sécurité : On ne peut pas valider une vente cash sans caisse configurée pour l'antenne
-            raise ValidationError(f"Configuration manquante : Aucune caisse trouvée pour l'antenne {antenne_du_vendeur.nom}")
-
-        # Création de la transaction dans la bonne caisse
+        account = _get_or_create_caisse_for_sale(instance)
         Transaction.objects.create(
             account=account,
             type="IN",
             amount=instance.total_price,
-            sale=instance
+            sale=instance,
         )
-        
-    elif instance.payment_method == 'Credit':
+        return
 
-        ## B. GESTION DU PAIEMENT CRÉDIT (lié à l'antenne)
-        customer_name = instance.customer.split(',')[0] if instance.customer else "Client Inconnu"
-        # Si vous n'avez pas le téléphone dans Sale, utilisez une valeur par défaut.
-        customer_phone = instance.customer.split(',')[1] if instance.customer else "N/A" 
-        
-        # 2. Créer une instance de Créance (Credit)
+    if instance.payment_method == "Credit":
+        if getattr(instance, "credit", None):
+            return
+
+        customer_name = instance.customer or "Client credit"
         Credit.objects.create(
             nom=customer_name,
-            telephone=customer_phone,
-            # La date de la créance est la date de la vente
-            date=instance.date or timezone.now(), 
+            telephone="N/A",
+            date=instance.date or timezone.now(),
             sale=instance,
-            status='Pending'
-            # Le statut par défaut est 'Pending'
-            # Note: Votre modèle Credit est incomplet, il manque le montant total dû !
+            status=Credit.PENDING,
         )
-        
+
+
+@receiver(pre_save, sender=Credit)
+def track_previous_credit_status(sender, instance, **kwargs):
+    if not instance.pk:
+        instance._previous_status = None
+        return
+    old = Credit.objects.filter(pk=instance.pk).only("status").first()
+    instance._previous_status = old.status if old else None
+
+
+@receiver(post_save, sender=Credit)
+def automate_credit_repayment(sender, instance, created, **kwargs):
+    # Creer une entree de caisse uniquement au passage Pending -> Paid
+    if created:
+        return
+
+    if instance.status != Credit.PAID:
+        return
+
+    previous = getattr(instance, "_previous_status", None)
+    if previous == Credit.PAID:
+        return
+
+    sale = instance.sale
+    if not sale:
+        return
+
+    if Transaction.objects.filter(sale=sale, type="IN").exists():
+        return
+
+    account = _get_or_create_caisse_for_sale(sale)
+    Transaction.objects.create(
+        account=account,
+        type="IN",
+        amount=sale.total_price,
+        sale=sale,
+    )
